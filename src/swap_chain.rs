@@ -25,9 +25,9 @@ pub struct SwapChain {
 }
 
 /// Creates a pixel buffer for the given size.
-fn create_pixel_buffer(width: usize, height: usize) -> Vec<Pixel> {
+fn create_pixel_buffer(width: usize, height: usize, color: Pixel) -> Vec<Pixel> {
     let mut vec = Vec::new();
-    vec.resize_with(width * height, || Pixel::RED);
+    vec.resize(width * height, color);
     vec
 }
 
@@ -39,7 +39,7 @@ impl SwapChain {
                 width: size.width as _,
                 height: size.height as _
             },
-            buffer: create_pixel_buffer(size.width as _, size.height as _),
+            buffer: create_pixel_buffer(size.width as _, size.height as _, Pixel::BLACK),
         }
     }
 
@@ -90,6 +90,17 @@ impl SwapChain {
             && (point.y as usize) < self.extent.height
     }
 
+    /// Resizes the swap chain image, using the specified color as the clear
+    /// color. To actually resize the swap chain and it's colors inside (without
+    /// clearing them) would be a waste, since we can just redraw instead.
+    pub fn resize_with_clear_color(&mut self, size: LogicalSize<u32>, color: Pixel) {
+        self.extent = Extent {
+            width: size.width as _,
+            height: size.height as _,
+        };
+        self.buffer = create_pixel_buffer(size.width as _, size.height as _, color)
+    }
+
     #[inline]
     fn set_pixel(&mut self, point: Vector2<i32>, color: Pixel) {
         let point = Vector2::new(point.x as usize, point.y as usize);
@@ -97,7 +108,7 @@ impl SwapChain {
     }
 
     fn vertex_to_pixel_position(&self, vertex: Vector2f) -> Vector2<i32> {
-        let x = ((vertex.x + 1.0) / 2.0 * self.extent.height as f32).round() as _;
+        let x = ((vertex.x + 1.0) / 2.0 * self.extent.width as f32).round() as _;
         let y = ((vertex.y + 1.0) / 2.0 * self.extent.height as f32).round() as _;
         Vector2::new(x, y)
     }
